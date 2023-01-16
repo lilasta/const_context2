@@ -17,13 +17,13 @@ impl<List: VariableList> Environment<List> {
     pub const fn get<Var: ConstVariable>(
         &self,
     ) -> ConstValueInstance<FindConstVariable<List, Var::Key, Var::Value>> {
-        ConstValueInstance::new()
+        const { ConstValueInstance::new() }
     }
 
     pub const fn has<Var: ConstVariable>(
         &self,
     ) -> ConstValueInstance<HasConstVariable<List, Var::Key, Var::Value>> {
-        ConstValueInstance::new()
+        const { ConstValueInstance::new() }
     }
 
     pub const fn set<Var: ConstVariable, Value: ConstValue>(
