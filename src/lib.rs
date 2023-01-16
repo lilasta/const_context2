@@ -34,8 +34,17 @@ const TEST2: u64 = {
     env.get::<Var>().unwrap()
 };
 
+const TEST3: (bool, bool) = {
+    type Var1 = (u64, u64);
+    type Var2 = (u32, u32);
+    let env = env::Environment::new();
+    let env = env.set::<Var1, _>(value::const_value!(u64, 1));
+    (env.has::<Var1>().unwrap(), env.has::<Var2>().unwrap())
+};
+
 const _: () = assert!(TEST == 3);
 const _: () = assert!(TEST2 == 1);
+const _: () = assert!(TEST3.0 == true && TEST3.1 == false);
 
 #[test]
 #[cfg(test)]

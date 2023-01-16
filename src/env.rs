@@ -16,7 +16,13 @@ impl Environment<VariableListEnd> {
 impl<List: VariableList> Environment<List> {
     pub const fn get<Var: ConstVariable>(
         &self,
-    ) -> ConstValueInstance<ConstVariableFind<List, Var::Key, Var::Value>> {
+    ) -> ConstValueInstance<FindConstVariable<List, Var::Key, Var::Value>> {
+        ConstValueInstance::new()
+    }
+
+    pub const fn has<Var: ConstVariable>(
+        &self,
+    ) -> ConstValueInstance<HasConstVariable<List, Var::Key, Var::Value>> {
         ConstValueInstance::new()
     }
 
@@ -78,9 +84,9 @@ impl<Key: 'static, Next: VariableList> VariableList for VariableListRemoved<Key,
     const BYTES: VariableListValue<Bytes> = VariableListValue::Removed;
 }
 
-pub struct ConstVariableFind<List, Key, Value>(PhantomData<(List, Key, Value)>);
+pub struct FindConstVariable<List, Key, Value>(PhantomData<(List, Key, Value)>);
 
-impl<List, Key, Value> ConstValue for ConstVariableFind<List, Key, Value>
+impl<List, Key, Value> ConstValue for FindConstVariable<List, Key, Value>
 where
     List: VariableList,
     Key: 'static,
@@ -88,6 +94,18 @@ where
 {
     type Type = Value;
     const BYTES: Bytes = find_variable::<List, Key, Value>();
+}
+
+pub struct HasConstVariable<List, Key, Value>(PhantomData<(List, Key, Value)>);
+
+impl<List, Key, Value> ConstValue for HasConstVariable<List, Key, Value>
+where
+    List: VariableList,
+    Key: 'static,
+    Value: 'static,
+{
+    type Type = bool;
+    const BYTES: Bytes = Bytes::new(has_variable::<List, Key, Value>());
 }
 
 pub trait ConstVariable {
@@ -169,5 +187,23 @@ where
             bytes
         }
         _ => find_variable::<List::Next, Key, Value>(),
+    }
+}
+
+const fn has_variable<List, Key, Value>() -> bool
+where
+    List: VariableList,
+    Key: 'static,
+    Value: 'static,
+{
+    match List::BYTES {
+        VariableListValue::End => false,
+        VariableListValue::Removed if type_eq::<Key, List::Key>() => false,
+        VariableListValue::Has(_)
+            if type_eq::<Key, List::Key>() && type_eq::<Value, List::Value>() =>
+        {
+            true
+        }
+        _ => has_variable::<List::Next, Key, Value>(),
     }
 }
