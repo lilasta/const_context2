@@ -25,6 +25,14 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         ConstValueInstance(PhantomData)
     }
 
+    pub const fn inspect<Inspect>(&self, inspect: Inspect)
+    where
+        Inspect: ~const Destruct,
+        Inspect: ~const FnOnce(Value::Type),
+    {
+        Self(PhantomData).map(inspect).unwrap();
+    }
+
     pub const fn unwrap(self) -> Value::Type {
         Value::BYTES.with_type::<Value::Type>()
     }

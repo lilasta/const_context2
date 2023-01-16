@@ -12,18 +12,23 @@
 #![feature(decl_macro)]
 #![feature(inline_const)]
 
-mod bytes;
-mod env;
-mod value;
+pub mod bytes;
+pub mod env;
+pub mod value;
 
 const TEST: u64 = {
     const fn u(n: u64) -> u64 {
         n
     }
 
+    const fn assertion(n: u64) {
+        assert!(n == 1);
+    }
+
     let a = value::const_value!(u64, 1);
     let b = value::const_value!(u64, 2);
     let a = a.map(u);
+    a.inspect(assertion);
     (a + b).unwrap()
 };
 
