@@ -74,7 +74,7 @@ impl<Key: 'static, Value: ConstValue, Next: VariableList> VariableList
     type Next = Next;
     type Key = Key;
     type Value = Value::Type;
-    const BYTES: VariableListValue<Bytes> = VariableListValue::Has(Value::BYTES);
+    const BYTES: VariableListValue<Bytes> = VariableListValue::Has(Bytes::new(Value::VALUE));
 }
 
 impl<Key: 'static, Next: VariableList> VariableList for VariableListRemoved<Key, Next> {
@@ -93,7 +93,7 @@ where
     Value: 'static,
 {
     type Type = Value;
-    const BYTES: Bytes = find_variable::<List, Key, Value>();
+    const VALUE: Self::Type = find_variable::<List, Key, Value>();
 }
 
 pub struct HasConstVariable<List, Key, Value>(PhantomData<(List, Key, Value)>);
@@ -105,7 +105,7 @@ where
     Value: 'static,
 {
     type Type = bool;
-    const BYTES: Bytes = Bytes::new(has_variable::<List, Key, Value>());
+    const VALUE: Self::Type = has_variable::<List, Key, Value>();
 }
 
 pub trait ConstVariable {
@@ -167,7 +167,7 @@ const fn type_eq<A: 'static, B: 'static>() -> bool {
 }
 
 #[track_caller]
-const fn find_variable<List, Key, Value>() -> Bytes
+const fn find_variable<List, Key, Value>() -> Value
 where
     List: VariableList,
     Key: 'static,
@@ -184,7 +184,7 @@ where
                 "{}",
                 error_unexpected_type::<Value, List::Value>()
             );
-            bytes
+            unsafe { bytes.with_type::<Value>() }
         }
         _ => find_variable::<List::Next, Key, Value>(),
     }

@@ -29,14 +29,14 @@ const TEST: u64 = {
     let b = value::const_value!(u64, 2);
     let a = a.map(u);
     a.inspect(assertion);
-    (a + b).unwrap()
+    (a + b).into_inner()
 };
 
 const TEST2: u64 = {
     type Var = ((), u64);
     let env = env::Environment::new();
     let env = env.set::<Var, _>(value::const_value!(u64, 1));
-    env.get::<Var>().unwrap()
+    env.get::<Var>().into_inner()
 };
 
 const TEST3: (bool, bool) = {
@@ -44,7 +44,10 @@ const TEST3: (bool, bool) = {
     type Var2 = (u32, u32);
     let env = env::Environment::new();
     let env = env.set::<Var1, _>(value::const_value!(u64, 1));
-    (env.has::<Var1>().unwrap(), env.has::<Var2>().unwrap())
+    (
+        env.has::<Var1>().into_inner(),
+        env.has::<Var2>().into_inner(),
+    )
 };
 
 const _: () = assert!(TEST == 3);

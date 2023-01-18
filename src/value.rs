@@ -6,7 +6,7 @@ use crate::bytes::Bytes;
 
 pub trait ConstValue: Sized {
     type Type: 'static;
-    const BYTES: Bytes;
+    const VALUE: Self::Type;
 }
 
 pub struct ConstValueInstance<Value: ConstValue>(PhantomData<Value>);
@@ -30,13 +30,21 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         Inspect: ~const Destruct,
         Inspect: ~const FnOnce(Value::Type),
     {
-        const { ConstValueInstance(PhantomData::<ConstMap<Value, Inspect>>).unwrap() }
+        const { ConstValueInstance(PhantomData::<ConstMap<Value, Inspect>>).into_inner() }
     }
 
-    pub const fn unwrap(self) -> Value::Type {
-        const { Value::BYTES.with_type::<Value::Type>() }
+    pub const fn into_inner(self) -> Value::Type {
+        const { Value::VALUE }
     }
 }
+
+impl<Value: ConstValue> const Clone for ConstValueInstance<Value> {
+    fn clone(&self) -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<Value: ConstValue> Copy for ConstValueInstance<Value> {}
 
 impl<Value: ConstValue> const Neg for ConstValueInstance<Value>
 where
@@ -187,7 +195,7 @@ pub struct ConstLiteral<Type, const BYTES: Bytes>(PhantomData<Type>);
 
 impl<Type: 'static, const BYTES: Bytes> ConstValue for ConstLiteral<Type, BYTES> {
     type Type = Type;
-    const BYTES: Bytes = BYTES;
+    const VALUE: Self::Type = unsafe { BYTES.with_type::<Self::Type>() };
 }
 
 pub struct ConstNeg<Value>(PhantomData<Value>);
@@ -197,7 +205,7 @@ where
     Value::Type: ~const Neg,
 {
     type Type = <Value::Type as Neg>::Output;
-    const BYTES: Bytes = Bytes::new(-Value::BYTES.with_type::<Value::Type>());
+    const VALUE: Self::Type = -Value::VALUE;
 }
 
 pub struct ConstAdd<L, R>(PhantomData<(L, R)>);
@@ -207,8 +215,7 @@ where
     L::Type: ~const Add<R::Type>,
 {
     type Type = <L::Type as Add<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() + R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE + R::VALUE;
 }
 
 pub struct ConstSub<L, R>(PhantomData<(L, R)>);
@@ -218,8 +225,7 @@ where
     L::Type: ~const Sub<R::Type>,
 {
     type Type = <L::Type as Sub<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() - R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE - R::VALUE;
 }
 
 pub struct ConstMul<L, R>(PhantomData<(L, R)>);
@@ -229,8 +235,7 @@ where
     L::Type: ~const Mul<R::Type>,
 {
     type Type = <L::Type as Mul<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() * R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE * R::VALUE;
 }
 
 pub struct ConstDiv<L, R>(PhantomData<(L, R)>);
@@ -240,8 +245,7 @@ where
     L::Type: ~const Div<R::Type>,
 {
     type Type = <L::Type as Div<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() / R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE / R::VALUE;
 }
 
 pub struct ConstRem<L, R>(PhantomData<(L, R)>);
@@ -251,8 +255,7 @@ where
     L::Type: ~const Rem<R::Type>,
 {
     type Type = <L::Type as Rem<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() % R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE % R::VALUE;
 }
 
 pub struct ConstNot<Value>(PhantomData<Value>);
@@ -262,7 +265,7 @@ where
     Value::Type: ~const Not,
 {
     type Type = <Value::Type as Not>::Output;
-    const BYTES: Bytes = Bytes::new(!Value::BYTES.with_type::<Value::Type>());
+    const VALUE: Self::Type = !Value::VALUE;
 }
 
 pub struct ConstBitAnd<L, R>(PhantomData<(L, R)>);
@@ -272,8 +275,7 @@ where
     L::Type: ~const BitAnd<R::Type>,
 {
     type Type = <L::Type as BitAnd<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() & R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE & R::VALUE;
 }
 
 pub struct ConstBitOr<L, R>(PhantomData<(L, R)>);
@@ -283,8 +285,7 @@ where
     L::Type: ~const BitOr<R::Type>,
 {
     type Type = <L::Type as BitOr<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() | R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE | R::VALUE;
 }
 
 pub struct ConstBitXor<L, R>(PhantomData<(L, R)>);
@@ -294,8 +295,7 @@ where
     L::Type: ~const BitXor<R::Type>,
 {
     type Type = <L::Type as BitXor<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() ^ R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE ^ R::VALUE;
 }
 
 pub struct ConstShl<L, R>(PhantomData<(L, R)>);
@@ -305,8 +305,7 @@ where
     L::Type: ~const Shl<R::Type>,
 {
     type Type = <L::Type as Shl<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() << R::BYTES.with_type::<R::Type>());
+    const VALUE: Self::Type = L::VALUE << R::VALUE;
 }
 
 pub struct ConstShr<L, R>(PhantomData<(L, R)>);
@@ -316,30 +315,7 @@ where
     L::Type: ~const Shr<R::Type>,
 {
     type Type = <L::Type as Shr<R::Type>>::Output;
-    const BYTES: Bytes =
-        Bytes::new(L::BYTES.with_type::<L::Type>() >> R::BYTES.with_type::<R::Type>());
-}
-
-pub struct ConstDeref<Value>(PhantomData<Value>);
-
-impl<Value: ConstValue> ConstValue for ConstDeref<Value>
-where
-    Value::Type: ~const Deref + ~const Destruct,
-    <Value::Type as Deref>::Target: Sized,
-{
-    type Type = <Value::Type as Deref>::Target;
-    const BYTES: Bytes = Bytes::new(Value::BYTES.with_type::<Value::Type>().deref());
-}
-
-pub struct ConstDerefMut<Value>(PhantomData<Value>);
-
-impl<Value: ConstValue> ConstValue for ConstDerefMut<Value>
-where
-    Value::Type: ~const DerefMut + ~const Destruct,
-    <Value::Type as Deref>::Target: Sized,
-{
-    type Type = <Value::Type as Deref>::Target;
-    const BYTES: Bytes = Bytes::new(Value::BYTES.with_type::<Value::Type>().deref_mut());
+    const VALUE: Self::Type = L::VALUE >> R::VALUE;
 }
 
 pub struct ConstIndex<Value, Idx>(PhantomData<(Value, Idx)>);
@@ -350,11 +326,7 @@ where
     <Value::Type as Index<Idx::Type>>::Output: Sized + ~const Clone,
 {
     type Type = <Value::Type as Index<Idx::Type>>::Output;
-    const BYTES: Bytes = {
-        let arr = Value::BYTES.with_type::<Value::Type>();
-        let idx = Idx::BYTES.with_type::<Idx::Type>();
-        Bytes::new(arr[idx].clone())
-    };
+    const VALUE: Self::Type = Value::VALUE[Idx::VALUE].clone();
 }
 
 pub struct ConstMap<V, F>(PhantomData<(V, F)>);
@@ -366,10 +338,9 @@ where
     R: 'static,
 {
     type Type = R;
-    const BYTES: Bytes = {
+    const VALUE: Self::Type = {
         let f = unsafe { MaybeUninit::<F>::uninit().assume_init() };
-        let r = f(V::BYTES.with_type::<V::Type>());
-        Bytes::new(r)
+        f(V::VALUE)
     };
 }
 
