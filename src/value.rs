@@ -55,8 +55,10 @@ impl<Value: ConstValue> const Deref for ConstValueInstance<Value> {
 
     fn deref(&self) -> &Self::Target {
         const {
-            let bytes = Bytes::new(Value::VALUE);
-            unsafe { &*bytes.as_ref::<Self::Target>() }
+            unsafe {
+                let bytes = Bytes::new(Value::VALUE);
+                &*bytes.as_ref::<Self::Target>()
+            }
         }
     }
 }
@@ -370,10 +372,4 @@ pub macro const_value($ty:ty, $init:expr) {{
     }
 
     $crate::value::ConstValueInstance::<__ConstValue>::new()
-}}
-
-pub macro const_bytes($ty:ty, $init:expr) {{
-    $crate::value::ConstValueInstance::<
-        $crate::value::ConstLiteral<$ty, { $crate::bytes::Bytes::new::<$ty>($init) }>,
-    >::new()
 }}

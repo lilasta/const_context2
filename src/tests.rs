@@ -46,9 +46,9 @@ fn test_bytes_as_type() {
 
     const {
         struct Struct(u64, u8, u32);
-        let bytes1 = Bytes::new(Struct(1, 2, 3));
-        let bytes2 = Bytes::new(Struct(3, 2, 1));
         unsafe {
+            let bytes1 = Bytes::new(Struct(1, 2, 3));
+            let bytes2 = Bytes::new(Struct(3, 2, 1));
             assert!(matches!(bytes1.as_type::<Struct>(), Struct(1, 2, 3)));
             assert!(matches!(bytes2.as_type::<Struct>(), Struct(3, 2, 1)));
         }
@@ -61,9 +61,9 @@ fn test_bytes_as_ref() {
 
     const {
         struct Struct(u64, u8, u32);
-        let bytes1 = Bytes::new(Struct(1, 2, 3));
-        let bytes2 = Bytes::new(Struct(3, 2, 1));
         unsafe {
+            let bytes1 = Bytes::new(Struct(1, 2, 3));
+            let bytes2 = Bytes::new(Struct(3, 2, 1));
             assert!(matches!(bytes1.as_ref::<Struct>(), Struct(1, 2, 3)));
             assert!(matches!(bytes2.as_ref::<Struct>(), Struct(3, 2, 1)));
             assert!(matches!(*bytes1.as_ref::<Struct>(), Struct(1, 2, 3)));

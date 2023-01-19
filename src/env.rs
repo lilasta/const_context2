@@ -89,7 +89,8 @@ impl<Key: 'static, Value: ConstValue, Next: VariableList> VariableList
     type Next = Next;
     type Key = Key;
     type Value = Value::Type;
-    const BYTES: VariableListValue<Bytes> = VariableListValue::Has(Bytes::new(Value::VALUE));
+    const BYTES: VariableListValue<Bytes> =
+        VariableListValue::Has(unsafe { Bytes::new(Value::VALUE) });
 }
 
 impl<Key: 'static, Next: VariableList> VariableList for VariableListRemoved<Key, Next> {
