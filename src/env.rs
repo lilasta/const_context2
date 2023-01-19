@@ -201,11 +201,7 @@ where
     match List::BYTES {
         VariableListValue::End => false,
         VariableListValue::Removed if type_eq::<Key, List::Key>() => false,
-        VariableListValue::Has(_)
-            if type_eq::<Key, List::Key>() && type_eq::<Value, List::Value>() =>
-        {
-            true
-        }
+        VariableListValue::Has(_) if type_eq::<Key, List::Key>() => type_eq::<Value, List::Value>(),
         _ => has_variable::<List::Next, Key, Value>(),
     }
 }
