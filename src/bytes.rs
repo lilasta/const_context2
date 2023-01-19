@@ -19,11 +19,13 @@ impl Bytes {
 
     pub const unsafe fn as_type<T>(self) -> T {
         let Self(bytes) = self;
+        assert!(bytes.len() == core::mem::size_of::<T>());
         core::ptr::read(bytes.as_ptr().cast())
     }
 
     pub const unsafe fn as_ref<T>(self) -> &'static T {
         let Self(bytes) = self;
+        assert!(bytes.len() == core::mem::size_of::<T>());
         &*bytes.as_ptr().cast()
     }
 }
