@@ -27,7 +27,7 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         Map: ~const FnOnce(Value::Type) -> R,
         R: 'static,
     {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 
     pub const fn inspect<Inspect>(&self, _: Inspect)
@@ -35,11 +35,11 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         Inspect: ~const Destruct,
         Inspect: ~const FnOnce(Value::Type),
     {
-        const { ConstValueInstance(PhantomData::<ConstMap<Value, Inspect>>).into_inner() }
+        ConstMap::<Value, Inspect>::VALUE
     }
 
     pub const fn into_inner(self) -> Value::Type {
-        const { Value::VALUE }
+        Value::VALUE
     }
 }
 
@@ -69,7 +69,7 @@ where
     type Output = ConstValueInstance<ConstNeg<Value>>;
 
     fn neg(self) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -80,7 +80,7 @@ where
     type Output = ConstValueInstance<ConstAdd<L, R>>;
 
     fn add(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -91,7 +91,7 @@ where
     type Output = ConstValueInstance<ConstSub<L, R>>;
 
     fn sub(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -102,7 +102,7 @@ where
     type Output = ConstValueInstance<ConstMul<L, R>>;
 
     fn mul(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -113,7 +113,7 @@ where
     type Output = ConstValueInstance<ConstDiv<L, R>>;
 
     fn div(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -124,7 +124,7 @@ where
     type Output = ConstValueInstance<ConstRem<L, R>>;
 
     fn rem(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -135,7 +135,7 @@ where
     type Output = ConstValueInstance<ConstNot<Value>>;
 
     fn not(self) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -146,7 +146,7 @@ where
     type Output = ConstValueInstance<ConstBitAnd<L, R>>;
 
     fn bitand(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -157,7 +157,7 @@ where
     type Output = ConstValueInstance<ConstBitOr<L, R>>;
 
     fn bitor(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -168,7 +168,7 @@ where
     type Output = ConstValueInstance<ConstBitXor<L, R>>;
 
     fn bitxor(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -179,7 +179,7 @@ where
     type Output = ConstValueInstance<ConstShl<L, R>>;
 
     fn shl(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -190,7 +190,7 @@ where
     type Output = ConstValueInstance<ConstShr<L, R>>;
 
     fn shr(self, _: ConstValueInstance<R>) -> Self::Output {
-        ConstValueInstance(PhantomData)
+        ConstValueInstance::new()
     }
 }
 
@@ -203,7 +203,7 @@ where
     type Output = ConstValueInstance<ConstIndex<Value, Idx>>;
 
     fn index(&self, _: ConstValueInstance<Idx>) -> &Self::Output {
-        const { &ConstValueInstance(PhantomData) }
+        const { &ConstValueInstance::new() }
     }
 }
 

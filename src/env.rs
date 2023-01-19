@@ -17,28 +17,30 @@ impl<List: VariableList> Environment<List> {
     pub const fn get<Var: ConstVariable>(
         &self,
     ) -> ConstValueInstance<FindConstVariable<List, Var::Key, Var::Value>> {
-        const { ConstValueInstance::new() }
+        ConstValueInstance::new()
     }
 
     pub const fn has<Var: ConstVariable>(
         &self,
     ) -> ConstValueInstance<HasConstVariable<List, Var::Key, Var::Value>> {
-        const { ConstValueInstance::new() }
+        ConstValueInstance::new()
     }
 
     pub const fn set<Var: ConstVariable, Value: ConstValue>(
         self,
         _: ConstValueInstance<Value>,
-    ) -> Environment<impl VariableList> {
-        const { Environment(PhantomData::<VariableListHas<Var::Key, Value, List>>) }
+    ) -> Environment<VariableListHas<Var::Key, Value, List>> {
+        self.auto()
     }
 
-    pub const fn unset<Var: ConstVariable>(self) -> Environment<impl VariableList> {
-        const { Environment(PhantomData::<VariableListRemoved<Var::Key, List>>) }
+    pub const fn unset<Var: ConstVariable>(
+        self,
+    ) -> Environment<VariableListRemoved<Var::Key, List>> {
+        self.auto()
     }
 
     pub const fn auto<Next: VariableList>(self) -> Environment<Next> {
-        const { Environment(PhantomData) }
+        Environment(PhantomData)
     }
 }
 
