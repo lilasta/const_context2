@@ -361,12 +361,6 @@ where
 }
 
 pub macro const_value($ty:ty, $init:expr) {{
-    $crate::value::ConstValueInstance::<
-        $crate::value::ConstLiteral<$ty, { $crate::bytes::Bytes::new::<$ty>($init) }>,
-    >::new()
-}}
-
-pub macro const_value_safe($ty:ty, $init:expr) {{
     struct __ConstValue;
 
     impl $crate::value::ConstValue for __ConstValue {
@@ -374,5 +368,11 @@ pub macro const_value_safe($ty:ty, $init:expr) {{
         const VALUE: Self::Type = $init;
     }
 
-    __ConstValue
+    $crate::value::ConstValueInstance::<__ConstValue>::new()
+}}
+
+pub macro const_bytes($ty:ty, $init:expr) {{
+    $crate::value::ConstValueInstance::<
+        $crate::value::ConstLiteral<$ty, { $crate::bytes::Bytes::new::<$ty>($init) }>,
+    >::new()
 }}
