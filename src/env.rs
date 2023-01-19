@@ -27,11 +27,23 @@ impl<List: VariableList> Environment<List> {
         ConstValueInstance::new()
     }
 
-    pub const fn set<Var: ConstVariable, Value: ConstValue>(
+    pub const fn set<Var: ConstVariable>(
         self,
-        _: ConstValueInstance<Value>,
-    ) -> Environment<VariableListHas<Var::Key, Value, List>> {
-        self.auto()
+        value: ConstValueInstance<impl ConstValue>,
+    ) -> Environment<impl VariableList> {
+        #[inline(always)]
+        const fn set_concrete<Key, Value, List>(
+            _: ConstValueInstance<Value>,
+        ) -> Environment<VariableListHas<Key, Value, List>>
+        where
+            Key: 'static,
+            Value: ConstValue,
+            List: VariableList,
+        {
+            Environment(PhantomData)
+        }
+
+        set_concrete::<Var::Key, _, List>(value)
     }
 
     pub const fn unset<Var: ConstVariable>(

@@ -35,7 +35,7 @@ const TEST: u64 = {
 const TEST2: u64 = {
     type Var = ((), u64);
     let env = env::Environment::new();
-    let env = env.set::<Var, _>(value::const_value!(u64, 1));
+    let env = env.set::<Var>(value::const_value!(u64, 1));
     *env.get::<Var>()
 };
 
@@ -43,7 +43,7 @@ const TEST3: (bool, bool) = {
     type Var1 = (u64, u64);
     type Var2 = (u32, u32);
     let env = env::Environment::new();
-    let env = env.set::<Var1, _>(value::const_value!(u64, 1));
+    let env = env.set::<Var1>(value::const_value!(u64, 1));
     (*env.has::<Var1>(), *env.has::<Var2>())
 };
 
