@@ -22,7 +22,7 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         Self(PhantomData)
     }
 
-    pub const fn map<Map, R>(self, _: Map) -> ConstValueInstance<ConstMap<Value, Map>>
+    pub const fn map<Map, R>(self, _: Map) -> ConstValueInstance<ConstMapByFunction<Value, Map>>
     where
         Map: ~const Destruct,
         Map: ~const FnOnce(Value::Type) -> R,
@@ -36,7 +36,7 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         Inspect: ~const Destruct,
         Inspect: ~const FnOnce(Value::Type),
     {
-        ConstMap::<Value, Inspect>::VALUE
+        ConstMapByFunction::<Value, Inspect>::VALUE
     }
 
     pub const fn into_inner(self) -> Value::Type {
@@ -57,7 +57,7 @@ impl<Value: ConstValue> const Deref for ConstValueInstance<Value> {
         const {
             unsafe {
                 let bytes = Bytes::new(Value::VALUE);
-                &*bytes.as_ref::<Self::Target>()
+                bytes.as_ref::<Self::Target>()
             }
         }
     }
@@ -348,9 +348,9 @@ where
     const VALUE: Self::Type = Value::VALUE[Idx::VALUE].clone();
 }
 
-pub struct ConstMap<V, F>(PhantomData<(V, F)>);
+pub struct ConstMapByFunction<V, F>(PhantomData<(V, F)>);
 
-impl<V, F, R> ConstValue for ConstMap<V, F>
+impl<V, F, R> ConstValue for ConstMapByFunction<V, F>
 where
     V: ConstValue,
     F: ~const FnOnce(V::Type) -> R,
@@ -358,7 +358,14 @@ where
 {
     type Type = R;
     const VALUE: Self::Type = {
+        // HACK: Functions must be zero-sized. This rejects closures with captured values.
+        assert!(core::mem::size_of::<F>() == 0);
+
+        // SAFETY: The type `F` is ZST, so there is no memory to initialize.
+        #[allow(clippy::uninit_assumed_init)]
         let f = unsafe { MaybeUninit::<F>::uninit().assume_init() };
+
+        // call...
         f(V::VALUE)
     };
 }
