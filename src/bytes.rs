@@ -17,8 +17,13 @@ impl Bytes {
         Self(bytes)
     }
 
-    pub const unsafe fn with_type<T>(self) -> T {
+    pub const unsafe fn as_type<T>(self) -> T {
         let Self(bytes) = self;
         core::ptr::read(bytes.as_ptr().cast())
+    }
+
+    pub const unsafe fn as_ref<T>(self) -> &'static T {
+        let Self(bytes) = self;
+        &*bytes.as_ptr().cast()
     }
 }

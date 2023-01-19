@@ -9,6 +9,11 @@ pub trait ConstValue: Sized {
     const VALUE: Self::Type;
 }
 
+impl ConstValue for () {
+    type Type = ();
+    const VALUE: Self::Type = ();
+}
+
 pub struct ConstValueInstance<Value: ConstValue>(PhantomData<Value>);
 
 impl<Value: ConstValue> ConstValueInstance<Value> {
@@ -41,6 +46,17 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
 impl<Value: ConstValue> const Clone for ConstValueInstance<Value> {
     fn clone(&self) -> Self {
         Self(PhantomData)
+    }
+}
+
+impl<Value: ConstValue> const Deref for ConstValueInstance<Value> {
+    type Target = Value::Type;
+
+    fn deref(&self) -> &Self::Target {
+        const {
+            let bytes = Bytes::new(Value::VALUE);
+            unsafe { &*bytes.as_ref::<Self::Target>() }
+        }
     }
 }
 
@@ -195,7 +211,7 @@ pub struct ConstLiteral<Type, const BYTES: Bytes>(PhantomData<Type>);
 
 impl<Type: 'static, const BYTES: Bytes> ConstValue for ConstLiteral<Type, BYTES> {
     type Type = Type;
-    const VALUE: Self::Type = unsafe { BYTES.with_type::<Self::Type>() };
+    const VALUE: Self::Type = unsafe { BYTES.as_type::<Self::Type>() };
 }
 
 pub struct ConstNeg<Value>(PhantomData<Value>);
@@ -348,4 +364,15 @@ pub macro const_value($ty:ty, $init:expr) {{
     $crate::value::ConstValueInstance::<
         $crate::value::ConstLiteral<$ty, { $crate::bytes::Bytes::new::<$ty>($init) }>,
     >::new()
+}}
+
+pub macro const_value_safe($ty:ty, $init:expr) {{
+    struct __ConstValue;
+
+    impl $crate::value::ConstValue for __ConstValue {
+        type Type = $ty;
+        const VALUE: Self::Type = $init;
+    }
+
+    __ConstValue
 }}

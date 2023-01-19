@@ -184,7 +184,7 @@ where
                 "{}",
                 error_unexpected_type::<Value, List::Value>()
             );
-            unsafe { bytes.with_type::<Value>() }
+            unsafe { bytes.as_type::<Value>() }
         }
         _ => find_variable::<List::Next, Key, Value>(),
     }
