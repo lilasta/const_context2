@@ -18,6 +18,7 @@ pub struct ConstValueInstance<Value: ConstValue>(PhantomData<Value>);
 
 impl<Value: ConstValue> ConstValueInstance<Value> {
     pub const fn new() -> Self {
+        const { assert!(core::mem::size_of::<Self>() == 0) };
         Self(PhantomData)
     }
 

@@ -9,6 +9,7 @@ pub struct Environment<List: VariableList>(PhantomData<List>);
 
 impl Environment<VariableListEnd> {
     pub const fn new() -> Self {
+        const { assert!(core::mem::size_of::<Self>() == 0) };
         Self(PhantomData)
     }
 }
