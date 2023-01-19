@@ -5,7 +5,8 @@ use core::intrinsics::const_allocate;
 /// # Motivation
 ///
 /// Const generics can't take a generic type, so we treat all values by reducing them to bytes instead.
-/// Also, since the Rust compiler refuses to use interior mutable types in various cases, we avoid annoying errors by using this.
+/// Also, since the Rust compiler refuses to use interior mutable types in various cases,
+/// we avoid annoying errors by using this.
 /// (this situation may improve in the future when Rust's std publishes the `Freeze` trait, though.)
 ///
 /// # Safety

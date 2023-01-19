@@ -22,7 +22,7 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         Self(PhantomData)
     }
 
-    pub const fn map<Map, R>(self, _: Map) -> ConstValueInstance<ConstMapByFunction<Value, Map>>
+    pub const fn map<Map, R>(self, _: Map) -> ConstValueInstance<ConstMap<Value, Map>>
     where
         Map: ~const Destruct,
         Map: ~const FnOnce(Value::Type) -> R,
@@ -36,7 +36,7 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         Inspect: ~const Destruct,
         Inspect: ~const FnOnce(Value::Type),
     {
-        ConstMapByFunction::<Value, Inspect>::VALUE
+        ConstMap::<Value, Inspect>::VALUE
     }
 
     pub const fn into_inner(self) -> Value::Type {
@@ -348,9 +348,9 @@ where
     const VALUE: Self::Type = Value::VALUE[Idx::VALUE].clone();
 }
 
-pub struct ConstMapByFunction<V, F>(PhantomData<(V, F)>);
+pub struct ConstMap<V, F>(PhantomData<(V, F)>);
 
-impl<V, F, R> ConstValue for ConstMapByFunction<V, F>
+impl<V, F, R> ConstValue for ConstMap<V, F>
 where
     V: ConstValue,
     F: ~const FnOnce(V::Type) -> R,
