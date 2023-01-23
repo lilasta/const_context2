@@ -2,8 +2,6 @@ use core::marker::{Destruct, PhantomData};
 use core::mem::MaybeUninit;
 use core::ops::*;
 
-use crate::bytes::Bytes;
-
 /// Types that have a constant value.
 pub trait ConstValue: Sized {
     type Type: 'static + ~const Destruct;
@@ -64,8 +62,13 @@ impl<Value: ConstValue> const Deref for ConstValueInstance<Value> {
     fn deref(&self) -> &Self::Target {
         const {
             unsafe {
-                let bytes = Bytes::new(Value::VALUE);
-                bytes.as_ref::<Self::Target>()
+                let size = core::mem::size_of::<Self::Target>();
+                let align = core::mem::align_of::<Self::Target>();
+
+                let ptr = core::intrinsics::const_allocate(size, align);
+                core::ptr::write(ptr.cast(), Value::VALUE);
+
+                &*ptr.cast()
             }
         }
     }

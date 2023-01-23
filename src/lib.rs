@@ -13,7 +13,6 @@
 #![feature(decl_macro)]
 #![feature(inline_const)]
 
-pub mod bytes;
 pub mod env;
 pub mod value;
 
