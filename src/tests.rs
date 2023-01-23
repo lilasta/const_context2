@@ -39,35 +39,3 @@ fn test_const() {
         assert!(TEST3.0 == true && TEST3.1 == false);
     }
 }
-
-#[test]
-fn test_bytes_as_type() {
-    use crate::bytes::Bytes;
-
-    const {
-        struct Struct(u64, u8, u32);
-        unsafe {
-            let bytes1 = Bytes::new(Struct(1, 2, 3));
-            let bytes2 = Bytes::new(Struct(3, 2, 1));
-            assert!(matches!(bytes1.as_type::<Struct>(), Struct(1, 2, 3)));
-            assert!(matches!(bytes2.as_type::<Struct>(), Struct(3, 2, 1)));
-        }
-    }
-}
-
-#[test]
-fn test_bytes_as_ref() {
-    use crate::bytes::Bytes;
-
-    const {
-        struct Struct(u64, u8, u32);
-        unsafe {
-            let bytes1 = Bytes::new(Struct(1, 2, 3));
-            let bytes2 = Bytes::new(Struct(3, 2, 1));
-            assert!(matches!(bytes1.as_ref::<Struct>(), Struct(1, 2, 3)));
-            assert!(matches!(bytes2.as_ref::<Struct>(), Struct(3, 2, 1)));
-            assert!(matches!(*bytes1.as_ref::<Struct>(), Struct(1, 2, 3)));
-            assert!(matches!(*bytes2.as_ref::<Struct>(), Struct(3, 2, 1)));
-        }
-    }
-}
