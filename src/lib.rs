@@ -6,6 +6,7 @@
 #![feature(const_ptr_write)]
 #![feature(const_refs_to_cell)]
 #![feature(const_trait_impl)]
+#![feature(const_transmute_copy)]
 #![feature(const_type_id)]
 #![feature(const_type_name)]
 #![feature(core_intrinsics)]

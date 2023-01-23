@@ -6,7 +6,7 @@ use crate::bytes::Bytes;
 
 /// Types that have a constant value.
 pub trait ConstValue: Sized {
-    type Type: 'static;
+    type Type: 'static + ~const Destruct;
     const VALUE: Self::Type;
 }
 

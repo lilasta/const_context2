@@ -2,7 +2,6 @@ use core::any::TypeId;
 use core::intrinsics::const_allocate;
 use core::marker::PhantomData;
 
-use crate::bytes::Bytes;
 use crate::value::{ConstValue, ConstValueInstance};
 
 pub struct Environment<List: VariableList>(PhantomData<List>);
@@ -63,24 +62,24 @@ pub struct VariableListHas<Key, Value: ConstValue, Next>(PhantomData<(Key, Value
 
 pub struct VariableListRemoved<Key, Next>(PhantomData<(Key, Next)>);
 
-pub enum VariableListValue<T> {
+pub enum VariableListKind {
     End,
-    Has(T),
+    Has,
     Removed,
 }
 
 pub trait VariableList {
     type Next: VariableList;
     type Key: 'static;
-    type Value: 'static;
-    const BYTES: VariableListValue<Bytes>;
+    type Value: ConstValue;
+    const KIND: VariableListKind;
 }
 
 impl VariableList for VariableListEnd {
     type Next = VariableListEnd;
     type Key = ();
     type Value = ();
-    const BYTES: VariableListValue<Bytes> = VariableListValue::End;
+    const KIND: VariableListKind = VariableListKind::End;
 }
 
 impl<Key: 'static, Value: ConstValue, Next: VariableList> VariableList
@@ -88,16 +87,15 @@ impl<Key: 'static, Value: ConstValue, Next: VariableList> VariableList
 {
     type Next = Next;
     type Key = Key;
-    type Value = Value::Type;
-    const BYTES: VariableListValue<Bytes> =
-        VariableListValue::Has(unsafe { Bytes::new(Value::VALUE) });
+    type Value = Value;
+    const KIND: VariableListKind = VariableListKind::Has;
 }
 
 impl<Key: 'static, Next: VariableList> VariableList for VariableListRemoved<Key, Next> {
     type Next = Next;
     type Key = Key;
     type Value = ();
-    const BYTES: VariableListValue<Bytes> = VariableListValue::Removed;
+    const KIND: VariableListKind = VariableListKind::Removed;
 }
 
 pub struct FindConstVariable<List, Key, Value>(PhantomData<(List, Key, Value)>);
@@ -189,18 +187,19 @@ where
     Key: 'static,
     Value: 'static,
 {
-    match List::BYTES {
-        VariableListValue::End => panic!("{}", error_not_found::<Key>()),
-        VariableListValue::Removed if type_eq::<Key, List::Key>() => {
+    match List::KIND {
+        VariableListKind::End => panic!("{}", error_not_found::<Key>()),
+        VariableListKind::Removed if type_eq::<Key, List::Key>() => {
             panic!("{}", error_not_found::<Key>())
         }
-        VariableListValue::Has(bytes) if type_eq::<Key, List::Key>() => {
+        VariableListKind::Has if type_eq::<Key, List::Key>() => {
             assert!(
-                type_eq::<Value, List::Value>(),
+                type_eq::<Value, <List::Value as ConstValue>::Type>(),
                 "{}",
-                error_unexpected_type::<Value, List::Value>()
+                error_unexpected_type::<Value, <List::Value as ConstValue>::Type>()
             );
-            unsafe { bytes.as_type::<Value>() }
+
+            unsafe { core::mem::transmute_copy(&<List::Value as ConstValue>::VALUE) }
         }
         _ => find_variable::<List::Next, Key, Value>(),
     }
@@ -212,10 +211,12 @@ where
     Key: 'static,
     Value: 'static,
 {
-    match List::BYTES {
-        VariableListValue::End => false,
-        VariableListValue::Removed if type_eq::<Key, List::Key>() => false,
-        VariableListValue::Has(_) if type_eq::<Key, List::Key>() => type_eq::<Value, List::Value>(),
+    match List::KIND {
+        VariableListKind::End => false,
+        VariableListKind::Removed if type_eq::<Key, List::Key>() => false,
+        VariableListKind::Has if type_eq::<Key, List::Key>() => {
+            type_eq::<Value, <List::Value as ConstValue>::Type>()
+        }
         _ => has_variable::<List::Next, Key, Value>(),
     }
 }
