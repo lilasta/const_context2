@@ -4,6 +4,7 @@ use core::ops::*;
 
 use crate::bytes::Bytes;
 
+/// Types that have a constant value.
 pub trait ConstValue: Sized {
     type Type: 'static;
     const VALUE: Self::Type;
@@ -14,14 +15,19 @@ impl ConstValue for () {
     const VALUE: Self::Type = ();
 }
 
+/// A type that treats constant-value operations like runtime-value operations.
 pub struct ConstValueInstance<Value: ConstValue>(PhantomData<Value>);
 
 impl<Value: ConstValue> ConstValueInstance<Value> {
+    /// Creates an instance of a constant-value.
     pub const fn new() -> Self {
+        // Ensures that the use of this type is zero-cost.
         const { assert!(core::mem::size_of::<Self>() == 0) };
+
         Self(PhantomData)
     }
 
+    /// Maps a value to an another value with a const function.
     pub const fn map<Map, R>(self, _: Map) -> ConstValueInstance<ConstMap<Value, Map>>
     where
         Map: ~const Destruct,
@@ -31,6 +37,7 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         ConstValueInstance::new()
     }
 
+    /// Inspects a value with a const inspect function.
     pub const fn inspect<Inspect>(&self, _: Inspect)
     where
         Inspect: ~const Destruct,
@@ -39,6 +46,7 @@ impl<Value: ConstValue> ConstValueInstance<Value> {
         ConstMap::<Value, Inspect>::VALUE
     }
 
+    /// Unwraps a constant value.
     pub const fn into_inner(self) -> Value::Type {
         Value::VALUE
     }
@@ -208,13 +216,6 @@ where
     fn index(&self, _: ConstValueInstance<Idx>) -> &Self::Output {
         const { &ConstValueInstance::new() }
     }
-}
-
-pub struct ConstLiteral<Type, const BYTES: Bytes>(PhantomData<Type>);
-
-impl<Type: 'static, const BYTES: Bytes> ConstValue for ConstLiteral<Type, BYTES> {
-    type Type = Type;
-    const VALUE: Self::Type = unsafe { BYTES.as_type::<Self::Type>() };
 }
 
 pub struct ConstNeg<Value>(PhantomData<Value>);
